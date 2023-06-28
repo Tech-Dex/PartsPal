@@ -1,32 +1,40 @@
 package main
 
 import (
+	"fmt"
+	"github.com/Tech-Dex/PartsPal/pkg/providers"
 	"github.com/Tech-Dex/PartsPal/pkg/scraper"
-	"github.com/Tech-Dex/PartsPal/pkg/types"
+	"github.com/Tech-Dex/PartsPal/pkg/structs"
+	"sync"
+	"time"
 )
 
+const Timeout = 5 * time.Second
+
 func main() {
-	bd := &types.BestDeal{
+	bd := &structs.BestDeal{
 		Product: "Random Product",
-		Price:   0.0,
+		Price:   -1,
 		Store:   "",
 		Link:    "",
 	}
-	scraper.Scrape(bd)
-	//var wg sync.WaitGroup
-	//for range make([]int, 10) {
-	//	wg.Add(1)
-	//	go func() {
-	//		defer wg.Done()
-	//		rf64 := rand.Float64() * 100
-	//		price, _, _ := bd.Get()
-	//		if rf64 > price {
-	//			bd.Update(rf64, "store", "link")
-	//		}
-	//	}()
-	//}
-	//
-	//wg.Wait()
-	//price, store, link := bd.Get()
-	//fmt.Printf("Best deal for %s is %f at %s (%s)\n", bd.Product, price, store, link)
+
+	productCode := "27025"
+
+	var wg sync.WaitGroup
+	pipe := make(chan string, providers.SizeURLs)
+	defer close(pipe)
+
+	scraper.FindBestDeal(bd, &productCode, &pipe, &wg)
+
+	for {
+		select {
+		case provider := <-pipe:
+			fmt.Println(provider)
+			fmt.Println(bd.Get())
+		case <-time.After(Timeout):
+			wg.Wait()
+			return
+		}
+	}
 }

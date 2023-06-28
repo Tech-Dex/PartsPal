@@ -1,21 +1,20 @@
 package providers
 
 import (
-	"github.com/Tech-Dex/PartsPal/pkg/types"
+	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"sync"
-	"time"
 )
 
 type Autodoc24 struct {
-	URL string
+	URL        string
+	SearchPath string
 }
 
-func (e *Autodoc24) Scrape(bd *types.BestDeal, out chan<- string, wg *sync.WaitGroup) {
+func (e *Autodoc24) Search(bd *structs.BestDeal, productCode *string, out chan<- string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	rf64 := 1.51231 * 100
-	time.Sleep(1 * time.Second)
 	price := bd.GetPrice()
-	if price < rf64 {
+	if price > rf64 || price == -1 {
 		bd.Update(rf64, "Autodoc24", e.URL)
 		out <- "Autodoc24"
 		return

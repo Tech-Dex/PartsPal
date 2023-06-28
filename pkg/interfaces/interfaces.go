@@ -1,10 +1,10 @@
 package interfaces
 
 import (
-	"github.com/Tech-Dex/PartsPal/pkg/types"
+	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"sync"
 )
 
 type Provider interface {
-	Scrape(bd *types.BestDeal, out chan<- string, wg *sync.WaitGroup)
+	Search(bd *structs.BestDeal, productCode *string, out chan<- string, wg *sync.WaitGroup)
 }
