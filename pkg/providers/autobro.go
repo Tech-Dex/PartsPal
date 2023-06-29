@@ -5,6 +5,7 @@ import (
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
 	"io"
+	"reflect"
 	"strconv"
 	"sync"
 )
@@ -32,7 +33,7 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 		if found {
 			return
 		}
-
+		//todo Grep link page
 		details := ls.Find(".table").Find("tbody").Find("tr")
 		details.Each(func(i int, ts *goquery.Selection) {
 			detailsTh := ts.Find("th").Text()
@@ -44,8 +45,9 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 					price, _ := strconv.ParseFloat(priceText, 64)
 					bdPrice := bd.GetPrice()
 					if price < bdPrice || bdPrice == -1 {
-						bd.Update(price, "Autobro", e.URL)
-						out <- "Autobro"
+						store := reflect.TypeOf(*e).Name()
+						bd.Update(price, store, e.URL)
+						out <- store
 						found = true
 						return
 					}
