@@ -6,5 +6,5 @@ import (
 )
 
 type Provider interface {
-	Search(bd *structs.BestDeal, productCode *string, out chan<- string, wg *sync.WaitGroup)
+	Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup)
 }

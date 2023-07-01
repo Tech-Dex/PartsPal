@@ -10,7 +10,9 @@ type Euautopiese struct {
 	SearchPath string
 }
 
-func (e *Euautopiese) Search(bd *structs.BestDeal, productCode *string, out chan<- string, wg *sync.WaitGroup) {
+func (e *Euautopiese) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
 	defer wg.Done()
-	out <- "Euautopiese"
+	out <- structs.Deal{
+		Store: "Euautopiese",
+	}
 }

@@ -5,7 +5,6 @@ var URLs = []string{
 	"https://www.autoeco.ro",
 	"https://www.autokarma.ro",
 	"https://www.targuldepiese.ro",
-	"https://www.autodoc24.ro",
 	"https://www.autopiesa.ro",
 	"https://www.autohut.ro",
 	"https://www.autobro.ro",
@@ -20,7 +19,6 @@ var URLs = []string{
 	"https://www.trol.ro",
 	"https://www.ssvauto.ro",
 	"https://www.comnico.ro",
-	"https://www.plm.ro",
 }
 
 var SizeURLs = len(URLs)

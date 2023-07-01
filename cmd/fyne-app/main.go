@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -16,27 +17,32 @@ import (
 	"time"
 )
 
-const Timeout = 5 * time.Second
+const Timeout = 10 * time.Second
 
 func main() {
 	a := app.New()
 
 	w := a.NewWindow("PartsPal")
 
-	productListB := binding.BindStringList(
+	providerDealListB := binding.BindStringList(
 		&[]string{},
 	)
 	bestDealB := binding.NewString()
 	bestDealB.Set("No best deal found")
+	var urlHl *url.URL
+	bestDealOpenLinkBtn := widget.NewHyperlinkWithStyle("Go to shop", urlHl, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	titleW := widget.NewLabel("PartsPal")
 	searchW := widget.NewEntry()
 	searchW.SetPlaceHolder("Product code")
 	searchBtn := widget.NewButton("Search", func() {
-		productListB.Set([]string{})
+		if searchW.Text == "" {
+			return
+		}
+		providerDealListB.Set([]string{})
 		go func() {
 			bd := &structs.BestDeal{
-				Product: "Random Product",
+				Product: "",
 				Price:   -1,
 				Store:   "",
 				Link:    "",
@@ -45,16 +51,29 @@ func main() {
 			//productCode := "27025"
 
 			var wg sync.WaitGroup
-			pipe := make(chan string, providers.SizeURLs)
+			pipe := make(chan structs.Deal, providers.SizeURLs)
 			defer close(pipe)
 
 			scraper.FindBestDeal(bd, &searchW.Text, &pipe, &wg)
 
 			for {
 				select {
-				case provider := <-pipe:
-					bestDealB.Set(strconv.FormatFloat(bd.GetPrice(), 'f', 2, 64))
-					productListB.Append(provider)
+				case deal := <-pipe:
+					fmt.Println(deal)
+					bdProduct, bdPrice, bdStore, bdLink := bd.Get()
+					if bdPrice == -1 {
+						bestDealB.Set("No best deal found")
+					} else {
+						bestDealB.Set(bdProduct + " - " + strconv.FormatFloat(bdPrice, 'f', 2, 64) + " RON @ " + bdStore)
+						bestDealOpenLinkBtn.SetURLFromString(bdLink)
+					}
+					_, dPrice, dStore, _, err := deal.Get()
+
+					providerDeal := strconv.FormatFloat(dPrice, 'f', 2, 64) + " RON @ " + dStore
+					if err != "" {
+						providerDeal = err + " @ " + dStore
+					}
+					providerDealListB.Append(providerDeal)
 				case <-time.After(Timeout):
 					wg.Wait()
 					return
@@ -76,7 +95,7 @@ func main() {
 		layout.NewSpacer(),
 	)
 
-	productListW := widget.NewListWithData(productListB,
+	productListW := widget.NewListWithData(providerDealListB,
 		func() fyne.CanvasObject {
 			return widget.NewLabel("template")
 		},
@@ -91,8 +110,6 @@ func main() {
 
 	bestDealLbl := widget.NewLabel("Best Deal")
 	bestDealW := widget.NewLabelWithData(bestDealB)
-	urlHl, _ := url.Parse("https://www.google.com")
-	bestDealOpenLinkBtn := widget.NewHyperlinkWithStyle("Go to shop", urlHl, fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 
 	bestDealC := container.New(
 		layout.NewAdaptiveGridLayout(1),

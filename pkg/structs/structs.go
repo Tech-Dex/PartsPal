@@ -80,3 +80,22 @@ func (bd *BestDeal) GetLink() string {
 	defer bd.mu.Unlock()
 	return bd.Link
 }
+
+type Deal struct {
+	Product string
+	Price   float64
+	Store   string
+	Link    string
+	Error   string
+}
+
+func (d *Deal) Set(product string, price float64, store string, link string) {
+	d.Product = product
+	d.Price = price
+	d.Store = store
+	d.Link = link
+}
+
+func (d *Deal) Get() (string, float64, string, string, string) {
+	return d.Product, d.Price, d.Store, d.Link, d.Error
+}

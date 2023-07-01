@@ -10,7 +10,9 @@ type Automobilus struct {
 	SearchPath string
 }
 
-func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan<- string, wg *sync.WaitGroup) {
+func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
 	defer wg.Done()
-	out <- "Automobilus"
+	out <- structs.Deal{
+		Store: "Automobilus",
+	}
 }

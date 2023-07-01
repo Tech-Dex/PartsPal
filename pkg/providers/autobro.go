@@ -15,7 +15,7 @@ type Autobro struct {
 	SearchPath string
 }
 
-func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- string, wg *sync.WaitGroup) {
+func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
 	defer wg.Done()
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
@@ -29,11 +29,11 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 	utils.CheckGenericProviderError(err, out)
 
 	found := false
+
 	doc.Find(".list-items").Each(func(i int, ls *goquery.Selection) {
 		if found {
 			return
 		}
-		//todo Grep link page
 		details := ls.Find(".table").Find("tbody").Find("tr")
 		details.Each(func(i int, ts *goquery.Selection) {
 			detailsTh := ts.Find("th").Text()
@@ -43,14 +43,26 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 					priceText := ls.Find(".price.hidden-xs").Find("span").Text()
 					priceText = priceText[0 : len(priceText)-4] // remove " RON"
 					price, _ := strconv.ParseFloat(priceText, 64)
+
 					bdPrice := bd.GetPrice()
+
+					store := reflect.TypeOf(*e).Name()
+					productLink, _ := ls.Find(".title").Find("a").Attr("href")
+					productName := ls.Find(".title").Find("h5").Text()
+
 					if price < bdPrice || bdPrice == -1 {
-						store := reflect.TypeOf(*e).Name()
-						bd.Update(price, store, e.URL)
-						out <- store
-						found = true
-						return
+
+						bd.Set(productName, price, store, productLink)
 					}
+
+					out <- structs.Deal{
+						Product: productName,
+						Price:   price,
+						Store:   store,
+						Link:    productLink,
+					}
+					found = true
+					return
 				}
 			}
 		})
@@ -60,6 +72,10 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 		return
 	}
 
-	out <- utils.ProductNotFoundMsg
+	out <- structs.Deal{
+		Store: reflect.TypeOf(*e).Name(),
+		Error: utils.ProductNotFoundMsg,
+	}
+
 	return
 }

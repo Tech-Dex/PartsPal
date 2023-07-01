@@ -10,7 +10,9 @@ type Kparts struct {
 	SearchPath string
 }
 
-func (e *Kparts) Search(bd *structs.BestDeal, productCode *string, out chan<- string, wg *sync.WaitGroup) {
+func (e *Kparts) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
 	defer wg.Done()
-	out <- "Kparts"
+	out <- structs.Deal{
+		Store: "Kparts",
+	}
 }

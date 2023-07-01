@@ -10,7 +10,9 @@ type Automag struct {
 	SearchPath string
 }
 
-func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- string, wg *sync.WaitGroup) {
+func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
 	defer wg.Done()
-	out <- "Automag"
+	out <- structs.Deal{
+		Store: "Automag",
+	}
 }

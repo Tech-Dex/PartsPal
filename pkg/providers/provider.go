@@ -10,24 +10,31 @@ func GetProvider(URL string) (interfaces.Provider, error) {
 	case "https://www.epiesa.ro":
 		return &Epiesa{URL: URL}, nil
 	case "https://www.autoeco.ro":
-		return &Autoeco{URL: URL}, nil
+		return &Autoeco{URL: URL,
+			SearchPath: "/cauta/?find=",
+		}, nil
 	case "https://www.autokarma.ro":
-		return &Autokarma{URL: URL}, nil
+		return &Autokarma{URL: URL,
+			SearchPath: "/cautare-dupa-cod-produs?src=",
+		}, nil
 	case "https://www.targuldepiese.ro":
 		return &Targuldepiese{URL: URL}, nil
-	case "https://www.autodoc24.ro":
-		return &Autodoc24{URL: URL}, nil
 	case "https://www.autopiesa.ro":
 		return &Autopiesa{URL: URL}, nil
 	case "https://www.autohut.ro":
-		return &Autohut{URL: URL}, nil
+		return &Autohut{
+			URL:        URL,
+			SearchPath: "/cautare-piesa/?find=",
+		}, nil
 	case "https://www.autobro.ro":
 		return &Autobro{
 			URL:        URL,
 			SearchPath: "/cautare-piese-auto?search=",
 		}, nil
 	case "https://www.automag.ro":
-		return &Automag{URL: URL}, nil
+		return &Automag{
+			URL: URL,
+		}, nil
 	case "https://www.topautopiese.ro":
 		return &Topautopiese{URL: URL}, nil
 	case "https://www.piese-auto.ro":

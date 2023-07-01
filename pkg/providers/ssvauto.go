@@ -10,7 +10,9 @@ type Ssvauto struct {
 	SearchPath string
 }
 
-func (e *Ssvauto) Search(bd *structs.BestDeal, productCode *string, out chan<- string, wg *sync.WaitGroup) {
+func (e *Ssvauto) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
 	defer wg.Done()
-	out <- "Ssvauto"
+	out <- structs.Deal{
+		Store: "Ssvauto",
+	}
 }

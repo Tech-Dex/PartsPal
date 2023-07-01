@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-func FindBestDeal(bd *structs.BestDeal, productCode *string, pipe *chan string, wg *sync.WaitGroup) {
+func FindBestDeal(bd *structs.BestDeal, productCode *string, pipe *chan structs.Deal, wg *sync.WaitGroup) {
 	for _, url := range providers.URLs {
 		provider, err := providers.GetProvider(url)
 		if utils.IsProviderNotFound(err) {
