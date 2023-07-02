@@ -11,7 +11,6 @@ var URLs = []string{
 	"https://www.automag.ro",
 	"https://www.topautopiese.ro",
 	"https://www.piese-auto.ro",
-	"https://www.autopieseonline24.ro",
 	"https://www.rapidauto.ro",
 	"https://www.euautopiese.ro",
 	"https://www.kparts.ro",

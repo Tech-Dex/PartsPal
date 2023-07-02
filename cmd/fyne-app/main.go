@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -11,6 +10,7 @@ import (
 	"github.com/Tech-Dex/PartsPal/pkg/providers"
 	"github.com/Tech-Dex/PartsPal/pkg/scraper"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
+	"github.com/Tech-Dex/PartsPal/pkg/utils"
 	"net/url"
 	"strconv"
 	"sync"
@@ -59,7 +59,6 @@ func main() {
 			for {
 				select {
 				case deal := <-pipe:
-					fmt.Println(deal)
 					bdProduct, bdPrice, bdStore, bdLink := bd.Get()
 					if bdPrice == -1 {
 						bestDealB.Set("No best deal found")
@@ -72,6 +71,9 @@ func main() {
 					providerDeal := strconv.FormatFloat(dPrice, 'f', 2, 64) + " RON @ " + dStore
 					if err != "" {
 						providerDeal = err + " @ " + dStore
+					}
+					if err == utils.LaCerereMsg {
+						providerDeal = "La cerere @ " + dStore
 					}
 					providerDealListB.Append(providerDeal)
 				case <-time.After(Timeout):

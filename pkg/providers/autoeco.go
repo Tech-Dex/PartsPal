@@ -1,13 +1,13 @@
 package providers
 
 import (
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
 	"io"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -30,12 +30,12 @@ func (e *Autoeco) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 	utils.CheckGenericProviderError(err, out)
 
 	found := false
-
 	doc.Find(".col-sm-6").Each(func(i int, ls *goquery.Selection) {
 		if found {
 			return
 		}
 		productSku := ls.Find(".sku").Text()
+		productSku = strings.Replace(productSku, " ", "", -1)
 		if productSku == *productCode {
 			priceText := ls.Find(".regular-price").Text()
 			priceText = priceText[0 : len(priceText)-4] // remove " RON"
@@ -65,7 +65,6 @@ func (e *Autoeco) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 		return
 	}
 
-	fmt.Println("Product not found on Autoeco")
 	out <- structs.Deal{
 		Store: reflect.TypeOf(*e).Name(),
 		Error: utils.ProductNotFoundMsg,
