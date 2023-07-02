@@ -42,6 +42,14 @@ func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 			priceText = priceText[0 : len(priceText)-5] // remove " RON"
 			priceText = strings.ReplaceAll(priceText, ",", ".")
 			price, _ = strconv.ParseFloat(priceText, 64)
+			if price == 0 {
+				out <- structs.Deal{
+					Store: reflect.TypeOf(*e).Name(),
+					Error: utils.IndisponibilMsg,
+				}
+
+				return
+			}
 		} else {
 			out <- structs.Deal{
 				Product: productName,

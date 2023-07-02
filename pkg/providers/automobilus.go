@@ -31,11 +31,18 @@ func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan
 
 	found := false
 
-	firstFind := doc.Find(".productInline").First()
-	if firstFind.Length() > 0 {
-		productName := strings.TrimSpace(firstFind.Find(".productInline__heading").Text())
-		productLink, _ := firstFind.Find(".balance-text").Attr("href")
-		priceText := firstFind.Find(".productPricesSimple__userPrice").Find(".price").Text()
+	doc.Find(".productInline").Each(func(i int, ls *goquery.Selection) {
+		if found {
+			return
+		}
+		productName := strings.TrimSpace(ls.Find(".productInline__heading").Text())
+
+		if strings.Contains(productName, *productCode) == false {
+			return
+		}
+
+		productLink, _ := ls.Find(".balance-text").Attr("href")
+		priceText := ls.Find(".productPricesSimple__userPrice").Find(".price").Text()
 		priceText = priceText[0 : len(priceText)-5] // remove " RON"
 		priceText = strings.ReplaceAll(priceText, ",", ".")
 		price, _ := strconv.ParseFloat(priceText, 64)
@@ -55,7 +62,7 @@ func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan
 
 		found = true
 		return
-	}
+	})
 
 	if found {
 		return

@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
@@ -42,13 +43,22 @@ func (e *Autokarma) Search(bd *structs.BestDeal, productCode *string, out chan<-
 			col4th := ls.Find(".col-sm-2").Eq(3)
 			priceText := col4th.Find(".media-body").Find("span").Text()
 			priceText = priceText[0 : len(priceText)-4] // remove " RON"
+			priceText = strings.ReplaceAll(priceText, ".", "")
+			priceText = strings.ReplaceAll(priceText, ",", ".")
 			price, _ := strconv.ParseFloat(priceText, 64)
 
 			bdPrice := bd.GetPrice()
 
 			store := reflect.TypeOf(*e).Name()
 			productLink := e.URL + e.SearchPath + *productCode
-			productName := ls.Find(".col-sm-6").Find(".col-xs-1").Text()
+			productName := ls.Find(".col-sm-6").First().Text()
+			productName = strings.ReplaceAll(productName, "\n", "")
+			productName = strings.TrimSpace(productName)
+			for strings.Contains(productName, "  ") {
+				productName = strings.ReplaceAll(productName, "  ", " ")
+			}
+
+			fmt.Println(productName)
 
 			if price < bdPrice || bdPrice == -1 {
 				bd.Set(productName, price, store, productLink)

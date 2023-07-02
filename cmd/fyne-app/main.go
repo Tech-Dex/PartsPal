@@ -10,7 +10,6 @@ import (
 	"github.com/Tech-Dex/PartsPal/pkg/providers"
 	"github.com/Tech-Dex/PartsPal/pkg/scraper"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
-	"github.com/Tech-Dex/PartsPal/pkg/utils"
 	"net/url"
 	"strconv"
 	"sync"
@@ -72,9 +71,6 @@ func main() {
 					if err != "" {
 						providerDeal = err + " @ " + dStore
 					}
-					if err == utils.LaCerereMsg {
-						providerDeal = "La cerere @ " + dStore
-					}
 					providerDealListB.Append(providerDeal)
 				case <-time.After(Timeout):
 					wg.Wait()
@@ -112,6 +108,7 @@ func main() {
 
 	bestDealLbl := widget.NewLabel("Best Deal")
 	bestDealW := widget.NewLabelWithData(bestDealB)
+	bestDealW.Wrapping = fyne.TextWrapWord
 
 	bestDealC := container.New(
 		layout.NewAdaptiveGridLayout(1),
