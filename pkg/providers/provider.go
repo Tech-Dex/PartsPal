@@ -45,9 +45,15 @@ func GetProvider(URL string) (interfaces.Provider, error) {
 	case "https://www.topautopiese.ro":
 		return &Topautopiese{URL: URL}, nil
 	case "https://www.piese-auto.ro":
-		return &Pieseauto{URL: URL}, nil
+		return &Pieseauto{
+			URL:        URL,
+			SearchPath: "/cautare-piesa/?find=",
+		}, nil
 	case "https://www.rapidauto.ro":
-		return &Rapidauto{URL: URL}, nil
+		return &Rapidauto{
+			URL:        URL,
+			SearchPath: "/ro/searchresult.html?search=",
+		}, nil
 	case "https://www.automobilus.ro":
 		return &Automobilus{
 			URL:        URL,
