@@ -32,8 +32,12 @@ func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<-
 	found := false
 
 	doc.Find(".listing-item").Each(func(i int, ls *goquery.Selection) {
-		productCodeProvider := ls.Find(".attributes").Text()
-		productCodeProvider = strings.Split(productCodeProvider, "\n")[1]
+		attributesText := ls.Find(".attributes").Text()
+		attributesArr := strings.Split(attributesText, "\n")
+		if len(attributesArr) < 2 {
+			return
+		}
+		productCodeProvider := attributesArr[1]
 		productCodeProvider = productCodeProvider[15:]
 		productCodeProvider = strings.ReplaceAll(productCodeProvider, " ", "")
 		if productCodeProvider == *productCode {

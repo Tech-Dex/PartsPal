@@ -21,7 +21,10 @@ func GetProvider(URL string) (interfaces.Provider, error) {
 			SearchPath: "/cautare-dupa-cod-produs?src=",
 		}, nil
 	case "https://www.targuldepiese.ro":
-		return &Targuldepiese{URL: URL}, nil
+		return &Targuldepiese{
+			URL:        URL,
+			SearchPath: "/cautare-piesa/?find=",
+		}, nil
 	case "https://www.autopiesa.ro":
 		return &Autopiesa{
 			URL:        URL,
@@ -42,8 +45,6 @@ func GetProvider(URL string) (interfaces.Provider, error) {
 			URL:        URL,
 			SearchPath: "/cautare?search=",
 		}, nil
-	case "https://www.topautopiese.ro":
-		return &Topautopiese{URL: URL}, nil
 	case "https://www.piese-auto.ro":
 		return &Pieseauto{
 			URL:        URL,
@@ -60,9 +61,10 @@ func GetProvider(URL string) (interfaces.Provider, error) {
 			SearchPath: "/cautare?search=",
 		}, nil
 	case "https://www.trol.ro":
-		return &Trol{URL: URL}, nil
-	case "https://www.ssvauto.ro":
-		return &Ssvauto{URL: URL}, nil
+		return &Trol{
+			URL:        URL,
+			SearchPath: "/index.php?route=product/search&search=",
+		}, nil
 	case "https://www.comnico.ro":
 		return &Comnico{
 			URL:        URL,

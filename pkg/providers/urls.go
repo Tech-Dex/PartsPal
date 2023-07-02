@@ -14,7 +14,6 @@ var URLs = []string{
 	"https://www.rapidauto.ro",
 	"https://www.automobilus.ro",
 	"https://www.trol.ro",
-	"https://www.ssvauto.ro",
 	"https://www.comnico.ro",
 }
 
