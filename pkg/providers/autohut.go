@@ -34,6 +34,7 @@ func (e *Autohut) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 	doc.Find(".single-sub-product").Each(func(i int, ls *goquery.Selection) {
 		details := ls.Find(".sub-product-detail").First().Find("p").Text()
 		productCodeProvider := strings.Split(details, "Cod producator: ")[1]
+		productCodeProvider = strings.ReplaceAll(productCodeProvider, " ", "")
 		if productCodeProvider == *productCode {
 			priceText := ls.Find(".bricolaje-bottom-text").Text()
 			priceText = priceText[0 : len(priceText)-11] // remove " Lei cu TVA"

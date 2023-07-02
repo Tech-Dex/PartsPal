@@ -35,7 +35,7 @@ func (e *Autoeco) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 			return
 		}
 		productSku := ls.Find(".sku").Text()
-		productSku = strings.Replace(productSku, " ", "", -1)
+		productSku = strings.ReplaceAll(productSku, " ", "")
 		if productSku == *productCode {
 			priceText := ls.Find(".regular-price").Text()
 			priceText = priceText[0 : len(priceText)-4] // remove " RON"

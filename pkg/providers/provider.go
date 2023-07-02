@@ -48,10 +48,6 @@ func GetProvider(URL string) (interfaces.Provider, error) {
 		return &Pieseauto{URL: URL}, nil
 	case "https://www.rapidauto.ro":
 		return &Rapidauto{URL: URL}, nil
-	case "https://www.euautopiese.ro":
-		return &Euautopiese{URL: URL}, nil
-	case "https://www.kparts.ro":
-		return &Kparts{URL: URL}, nil
 	case "https://www.automobilus.ro":
 		return &Automobilus{
 			URL:        URL,

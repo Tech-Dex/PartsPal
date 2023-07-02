@@ -7,6 +7,7 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -36,6 +37,7 @@ func (e *Autokarma) Search(bd *structs.BestDeal, productCode *string, out chan<-
 		}
 
 		productSku := ls.Find(".sku_prod").Text()
+		productSku = strings.ReplaceAll(productSku, " ", "")
 		if productSku == *productCode {
 			col4th := ls.Find(".col-sm-2").Eq(3)
 			priceText := col4th.Find(".media-body").Find("span").Text()

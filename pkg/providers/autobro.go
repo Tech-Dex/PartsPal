@@ -7,6 +7,7 @@ import (
 	"io"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -39,6 +40,7 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 			detailsTh := ts.Find("th").Text()
 			if detailsTh == "Cod produs" {
 				detailsTd := ts.Find("td").Text()
+				detailsTd = strings.ReplaceAll(detailsTd, " ", "")
 				if detailsTd == *productCode {
 					priceText := ls.Find(".price.hidden-xs").Find("span").Text()
 					priceText = priceText[0 : len(priceText)-4] // remove " RON"

@@ -36,10 +36,12 @@ func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 		}
 
 		productCodeProvider := ls.Find(".codlinie").Text()
+		productCodeProvider = strings.ReplaceAll(productCodeProvider, " ", "")
 		if productCodeProvider == *productCode {
 			priceText := ls.Find(".pretunic").Text()
 			priceText = priceText[0 : len(priceText)-5] // remove " Lei"
 			priceText = priceText[:len(priceText)-2] + "." + priceText[len(priceText)-2:]
+			priceText = strings.ReplaceAll(priceText, ",", ".")
 			price, _ := strconv.ParseFloat(priceText, 64)
 
 			bdPrice := bd.GetPrice()
