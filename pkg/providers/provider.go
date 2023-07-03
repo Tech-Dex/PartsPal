@@ -5,6 +5,25 @@ import (
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
 )
 
+var URLs = []string{
+	"https://www.epiesa.ro",
+	"https://www.autoeco.ro",
+	"https://www.autokarma.ro",
+	"https://www.targuldepiese.ro",
+	"https://www.autopiesa.ro",
+	"https://www.autohut.ro",
+	"https://www.autobro.ro",
+	"https://www.automag.ro",
+	"https://www.topautopiese.ro",
+	"https://www.piese-auto.ro",
+	"https://www.rapidauto.ro",
+	"https://www.automobilus.ro",
+	"https://www.trol.ro",
+	"https://www.comnico.ro",
+}
+
+var SizeURLs = len(URLs)
+
 func GetProvider(URL string) (interfaces.Provider, error) {
 	switch URL {
 	case "https://www.epiesa.ro":
@@ -13,11 +32,13 @@ func GetProvider(URL string) (interfaces.Provider, error) {
 			SearchPath: "/cautare-piesa/?find=",
 		}, nil
 	case "https://www.autoeco.ro":
-		return &Autoeco{URL: URL,
+		return &Autoeco{
+			URL:        URL,
 			SearchPath: "/cauta/?find=",
 		}, nil
 	case "https://www.autokarma.ro":
-		return &Autokarma{URL: URL,
+		return &Autokarma{
+			URL:        URL,
 			SearchPath: "/cautare-dupa-cod-produs?src=",
 		}, nil
 	case "https://www.targuldepiese.ro":
@@ -75,5 +96,4 @@ func GetProvider(URL string) (interfaces.Provider, error) {
 			Provider: URL,
 		}
 	}
-
 }

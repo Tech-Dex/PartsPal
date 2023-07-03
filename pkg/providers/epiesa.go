@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
@@ -16,8 +17,22 @@ type Epiesa struct {
 	SearchPath string
 }
 
-func (e *Epiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
+func (e *Epiesa) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
 	defer wg.Done()
+
+	for {
+		select {
+		case <-(*ctx).Done():
+			return
+		default:
+			e.Search(bd, productCode, out)
+			return
+		}
+	}
+
+}
+
+func (e *Epiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -32,11 +47,15 @@ func (e *Epiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- st
 	found := false
 
 	doc.Find(".single-sub-product").Each(func(i int, ls *goquery.Selection) {
+		if found {
+			return
+		}
+
 		details := ls.Find(".sub-product-detail").First().Find("p").Text()
 		productCodeProvider := strings.Split(details, "Cod producator: ")[1]
 		productCodeProvider = strings.ReplaceAll(productCodeProvider, " ", "")
 		if productCodeProvider == *productCode {
-			priceText := ls.Find(".bricolaje-bottom-text").Text()
+			priceText := ls.Find(".bricolaje-bottom-text").Find("h4").Text()
 			priceText = priceText[0 : len(priceText)-11] // remove " Lei cu TVA"
 			priceText = strings.ReplaceAll(priceText, ",", ".")
 			price, _ := strconv.ParseFloat(priceText, 64)
@@ -51,7 +70,7 @@ func (e *Epiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- st
 				bd.Set(productName, price, store, e.URL+productLink)
 			}
 
-			out <- structs.Deal{
+			out <- &structs.Deal{
 				Product: productName,
 				Price:   price,
 				Store:   store,
@@ -66,9 +85,9 @@ func (e *Epiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- st
 		return
 	}
 
-	out <- structs.Deal{
-		Store: reflect.TypeOf(*e).Name(),
-		Error: utils.ProductNotFoundMsg,
+	out <- &structs.Deal{
+		Store:    reflect.TypeOf(*e).Name(),
+		NotFound: true,
 	}
 
 	return

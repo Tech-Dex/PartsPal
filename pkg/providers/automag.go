@@ -1,6 +1,8 @@
 package providers
 
 import (
+	"context"
+	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
@@ -16,8 +18,21 @@ type Automag struct {
 	SearchPath string
 }
 
-func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
+func (e *Automag) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
 	defer wg.Done()
+	for {
+		select {
+		case <-(*ctx).Done():
+			fmt.Println("Automag ctx done")
+			return
+		default:
+			e.Search(bd, productCode, out)
+			return
+		}
+	}
+}
+
+func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -43,23 +58,22 @@ func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 			priceText = strings.ReplaceAll(priceText, ",", ".")
 			price, _ = strconv.ParseFloat(priceText, 64)
 			if price == 0 {
-				out <- structs.Deal{
-					Store: reflect.TypeOf(*e).Name(),
-					Error: utils.IndisponibilMsg,
+				out <- &structs.Deal{
+					Store:       reflect.TypeOf(*e).Name(),
+					Unavailable: true,
 				}
 
 				return
 			}
 		} else {
-			out <- structs.Deal{
-				Product: productName,
-				Store:   reflect.TypeOf(*e).Name(),
-				Error:   utils.LaCerereMsg,
+			out <- &structs.Deal{
+				Product:     productName,
+				Store:       reflect.TypeOf(*e).Name(),
+				Requestable: true,
 			}
 			found = true
 			return
 		}
-
 		bdPrice := bd.GetPrice()
 
 		store := reflect.TypeOf(*e).Name()
@@ -67,7 +81,7 @@ func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 			bd.Set(productName, price, store, productLink)
 		}
 
-		out <- structs.Deal{
+		out <- &structs.Deal{
 			Product: productName,
 			Price:   price,
 			Store:   store,
@@ -82,9 +96,9 @@ func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 		return
 	}
 
-	out <- structs.Deal{
-		Store: reflect.TypeOf(*e).Name(),
-		Error: utils.ProductNotFoundMsg,
+	out <- &structs.Deal{
+		Store:    reflect.TypeOf(*e).Name(),
+		NotFound: true,
 	}
 
 	return

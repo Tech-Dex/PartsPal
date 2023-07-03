@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
@@ -16,8 +17,20 @@ type Rapidauto struct {
 	SearchPath string
 }
 
-func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
+func (e *Rapidauto) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
 	defer wg.Done()
+	for {
+		select {
+		case <-(*ctx).Done():
+			return
+		default:
+			e.Search(bd, productCode, out)
+			return
+		}
+	}
+}
+
+func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -32,6 +45,10 @@ func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<-
 	found := false
 
 	doc.Find(".listing-item").Each(func(i int, ls *goquery.Selection) {
+		if found {
+			return
+		}
+
 		attributesText := ls.Find(".attributes").Text()
 		attributesArr := strings.Split(attributesText, "\n")
 		if len(attributesArr) < 2 {
@@ -57,7 +74,7 @@ func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<-
 				bd.Set(productName, price, store, productLink)
 			}
 
-			out <- structs.Deal{
+			out <- &structs.Deal{
 				Product: productName,
 				Price:   price,
 				Store:   store,
@@ -72,9 +89,9 @@ func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<-
 		return
 	}
 
-	out <- structs.Deal{
-		Store: reflect.TypeOf(*e).Name(),
-		Error: utils.ProductNotFoundMsg,
+	out <- &structs.Deal{
+		Store:    reflect.TypeOf(*e).Name(),
+		NotFound: true,
 	}
 
 	return

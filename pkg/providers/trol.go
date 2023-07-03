@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
@@ -16,8 +17,20 @@ type Trol struct {
 	SearchPath string
 }
 
-func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
+func (e *Trol) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
 	defer wg.Done()
+	for {
+		select {
+		case <-(*ctx).Done():
+			return
+		default:
+			e.Search(bd, productCode, out)
+			return
+		}
+	}
+}
+
+func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -32,6 +45,10 @@ func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- stru
 	found := false
 
 	doc.Find(".product-thumb").Each(func(i int, ls *goquery.Selection) {
+		if found {
+			return
+		}
+
 		caption := ls.Find(".caption").Find("p").Text()
 		caption = strings.Split(caption, "Nr. articol")[1]
 		productCodeProvider := caption[12:]
@@ -54,7 +71,7 @@ func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- stru
 			if price < bdPrice || bdPrice == -1 {
 				bd.Set(productName, price, store, e.URL+productLink)
 			}
-			out <- structs.Deal{
+			out <- &structs.Deal{
 				Product: productName,
 				Price:   price,
 				Store:   store,
@@ -69,9 +86,9 @@ func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- stru
 		return
 	}
 
-	out <- structs.Deal{
-		Store: reflect.TypeOf(*e).Name(),
-		Error: utils.ProductNotFoundMsg,
+	out <- &structs.Deal{
+		Store:    reflect.TypeOf(*e).Name(),
+		NotFound: true,
 	}
 
 	return

@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
@@ -16,8 +17,20 @@ type Comnico struct {
 	SearchPath string
 }
 
-func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
+func (e *Comnico) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
 	defer wg.Done()
+	for {
+		select {
+		case <-(*ctx).Done():
+			return
+		default:
+			e.Search(bd, productCode, out)
+			return
+		}
+	}
+}
+
+func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 	defer func(Body io.ReadCloser) {
@@ -56,7 +69,7 @@ func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 				bd.Set(productName, price, store, productLink)
 			}
 
-			out <- structs.Deal{
+			out <- &structs.Deal{
 				Product: productName,
 				Price:   price,
 				Store:   store,
@@ -71,9 +84,9 @@ func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- s
 		return
 	}
 
-	out <- structs.Deal{
-		Store: reflect.TypeOf(*e).Name(),
-		Error: utils.ProductNotFoundMsg,
+	out <- &structs.Deal{
+		Store:    reflect.TypeOf(*e).Name(),
+		NotFound: true,
 	}
 
 	return

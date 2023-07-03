@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"context"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
@@ -16,8 +17,20 @@ type Autopiesa struct {
 	SearchPath string
 }
 
-func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- structs.Deal, wg *sync.WaitGroup) {
+func (e *Autopiesa) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
 	defer wg.Done()
+	for {
+		select {
+		case <-(*ctx).Done():
+			return
+		default:
+			e.Search(bd, productCode, out)
+			return
+		}
+	}
+}
+
+func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -53,7 +66,7 @@ func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 				bd.Set(productName, price, store, productLink)
 			}
 
-			out <- structs.Deal{
+			out <- &structs.Deal{
 				Product: productName,
 				Price:   price,
 				Store:   store,
@@ -69,9 +82,9 @@ func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 		return
 	}
 
-	out <- structs.Deal{
-		Store: reflect.TypeOf(*e).Name(),
-		Error: utils.ProductNotFoundMsg,
+	out <- &structs.Deal{
+		Store:    reflect.TypeOf(*e).Name(),
+		NotFound: true,
 	}
 
 	return

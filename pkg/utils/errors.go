@@ -26,8 +26,8 @@ func IsProviderNotFound(err error) bool {
 	return false
 }
 
-func CheckGenericProviderError(err error, out chan<- structs.Deal) {
+func CheckGenericProviderError(err error, out chan<- *structs.Deal) {
 	if err != nil {
-		out <- structs.Deal{Error: GenericProviderErrorMsg}
+		out <- &structs.Deal{Error: GenericProviderErrorMsg}
 	}
 }

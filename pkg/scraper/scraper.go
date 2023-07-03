@@ -1,19 +1,20 @@
 package scraper
 
 import (
+	"context"
 	"github.com/Tech-Dex/PartsPal/pkg/providers"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
 	"sync"
 )
 
-func FindBestDeal(bd *structs.BestDeal, productCode *string, pipe *chan structs.Deal, wg *sync.WaitGroup) {
+func FindBestDeal(bd *structs.BestDeal, productCode *string, pipe *chan *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
 	for _, url := range providers.URLs {
 		provider, err := providers.GetProvider(url)
 		if utils.IsProviderNotFound(err) {
 			continue
 		}
 		wg.Add(1)
-		go provider.Search(bd, productCode, *pipe, wg)
+		go provider.SearchCtx(bd, productCode, *pipe, wg, ctx)
 	}
 }

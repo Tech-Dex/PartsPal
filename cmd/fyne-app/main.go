@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -10,6 +11,7 @@ import (
 	"github.com/Tech-Dex/PartsPal/pkg/providers"
 	"github.com/Tech-Dex/PartsPal/pkg/scraper"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
+	"github.com/Tech-Dex/PartsPal/pkg/utils"
 	"net/url"
 	"strconv"
 	"sync"
@@ -34,7 +36,15 @@ func main() {
 	titleW := widget.NewLabel("PartsPal")
 	searchW := widget.NewEntry()
 	searchW.SetPlaceHolder("Product code")
+
+	var ctx context.Context
+	var cancel context.CancelFunc
 	searchBtn := widget.NewButton("Search", func() {
+		if ctx != nil {
+			providerDealListB.Set([]string{})
+			cancel()
+		}
+		ctx, cancel = context.WithCancel(context.Background())
 		if searchW.Text == "" {
 			return
 		}
@@ -47,13 +57,11 @@ func main() {
 				Link:    "",
 			}
 
-			//productCode := "27025"
-
 			var wg sync.WaitGroup
-			pipe := make(chan structs.Deal, providers.SizeURLs)
+			pipe := make(chan *structs.Deal, providers.SizeURLs)
 			defer close(pipe)
 
-			scraper.FindBestDeal(bd, &searchW.Text, &pipe, &wg)
+			scraper.FindBestDeal(bd, &searchW.Text, &pipe, &wg, &ctx)
 
 			for {
 				select {
@@ -65,15 +73,25 @@ func main() {
 						bestDealB.Set(bdProduct + " - " + strconv.FormatFloat(bdPrice, 'f', 2, 64) + " RON @ " + bdStore)
 						bestDealOpenLinkBtn.SetURLFromString(bdLink)
 					}
-					_, dPrice, dStore, _, err := deal.Get()
+					_, dPrice, dStore, _, err, notFound, unavailable, requstable := deal.Get()
 
 					providerDeal := strconv.FormatFloat(dPrice, 'f', 2, 64) + " RON @ " + dStore
+					if notFound {
+						providerDeal = utils.ProductNotFoundMsg + " @ " + dStore
+					}
+					if unavailable {
+						providerDeal = utils.IndisponibilMsg + " @ " + dStore
+					}
+					if requstable {
+						providerDeal = utils.LaCerereMsg + " @ " + dStore
+					}
 					if err != "" {
-						providerDeal = err + " @ " + dStore
+						providerDeal = utils.GenericProviderErrorMsg + " @ " + dStore
 					}
 					providerDealListB.Append(providerDeal)
 				case <-time.After(Timeout):
 					wg.Wait()
+					cancel()
 					return
 				}
 			}
@@ -126,7 +144,6 @@ func main() {
 	w.SetContent(container.New(
 		layout.NewAdaptiveGridLayout(1),
 		headerC,
-		layout.NewSpacer(),
 		mainC,
 	))
 
