@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type Rapidauto struct {
@@ -17,20 +16,7 @@ type Rapidauto struct {
 	SearchPath string
 }
 
-func (e *Rapidauto) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
-	defer wg.Done()
-	for {
-		select {
-		case <-(*ctx).Done():
-			return
-		default:
-			e.Search(bd, productCode, out)
-			return
-		}
-	}
-}
-
-func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
+func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -45,7 +31,7 @@ func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<-
 	found := false
 
 	doc.Find(".listing-item").Each(func(i int, ls *goquery.Selection) {
-		if found {
+		if found || ctx.Err() != nil {
 			return
 		}
 
@@ -70,6 +56,11 @@ func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<-
 			productName := ls.Find(".col-sm-8").Find("h3").Text()
 			productLink, _ := ls.Find(".col-sm-8").Find("h3").Find("a").Attr("href")
 
+			if ctx.Err() != nil {
+				found = true
+				return
+			}
+
 			if price < bdPrice || bdPrice == -1 {
 				bd.Set(productName, price, store, productLink)
 			}
@@ -85,7 +76,7 @@ func (e *Rapidauto) Search(bd *structs.BestDeal, productCode *string, out chan<-
 		}
 	})
 
-	if found {
+	if found || ctx.Err() != nil {
 		return
 	}
 

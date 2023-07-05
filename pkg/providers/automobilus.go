@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type Automobilus struct {
@@ -17,20 +16,7 @@ type Automobilus struct {
 	SearchPath string
 }
 
-func (e *Automobilus) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
-	defer wg.Done()
-	for {
-		select {
-		case <-(*ctx).Done():
-			return
-		default:
-			e.Search(bd, productCode, out)
-			return
-		}
-	}
-}
-
-func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
+func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -45,7 +31,7 @@ func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan
 	found := false
 
 	doc.Find(".productInline").Each(func(i int, ls *goquery.Selection) {
-		if found {
+		if found || ctx.Err() != nil {
 			return
 		}
 		productName := strings.TrimSpace(ls.Find(".productInline__heading").Text())
@@ -62,6 +48,12 @@ func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan
 		bdPrice := bd.GetPrice()
 
 		store := reflect.TypeOf(*e).Name()
+
+		if ctx.Err() != nil {
+			found = true
+			return
+		}
+
 		if price < bdPrice || bdPrice == -1 {
 			bd.Set(productName, price, store, productLink)
 		}
@@ -77,7 +69,7 @@ func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan
 		return
 	})
 
-	if found {
+	if found || ctx.Err() != nil {
 		return
 	}
 

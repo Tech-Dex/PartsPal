@@ -61,7 +61,7 @@ func main() {
 			pipe := make(chan *structs.Deal, providers.SizeURLs)
 			defer close(pipe)
 
-			scraper.FindBestDeal(bd, &searchW.Text, &pipe, &wg, &ctx)
+			scraper.FindBestDeal(bd, &searchW.Text, &pipe, &wg, ctx)
 
 			for {
 				select {

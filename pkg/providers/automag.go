@@ -2,7 +2,6 @@ package providers
 
 import (
 	"context"
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
@@ -10,7 +9,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type Automag struct {
@@ -18,21 +16,7 @@ type Automag struct {
 	SearchPath string
 }
 
-func (e *Automag) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
-	defer wg.Done()
-	for {
-		select {
-		case <-(*ctx).Done():
-			fmt.Println("Automag ctx done")
-			return
-		default:
-			e.Search(bd, productCode, out)
-			return
-		}
-	}
-}
-
-func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
+func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -77,6 +61,12 @@ func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 		bdPrice := bd.GetPrice()
 
 		store := reflect.TypeOf(*e).Name()
+
+		if ctx.Err() != nil {
+			found = true
+			return
+		}
+
 		if price < bdPrice || bdPrice == -1 {
 			bd.Set(productName, price, store, productLink)
 		}
@@ -92,7 +82,7 @@ func (e *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 		return
 	}
 
-	if found {
+	if found || ctx.Err() != nil {
 		return
 	}
 

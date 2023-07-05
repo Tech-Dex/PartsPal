@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type Comnico struct {
@@ -17,20 +16,7 @@ type Comnico struct {
 	SearchPath string
 }
 
-func (e *Comnico) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
-	defer wg.Done()
-	for {
-		select {
-		case <-(*ctx).Done():
-			return
-		default:
-			e.Search(bd, productCode, out)
-			return
-		}
-	}
-}
-
-func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
+func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 	defer func(Body io.ReadCloser) {
@@ -44,7 +30,7 @@ func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 	found := false
 
 	doc.Find(".articol").Each(func(i int, ls *goquery.Selection) {
-		if found {
+		if found || ctx.Err() != nil {
 			return
 		}
 
@@ -65,6 +51,12 @@ func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 			productLink, _ := ls.Find(".denumire").Attr("onclick")
 			productLink = strings.Replace(productLink, "ajaxUrl('", "", -1)
 			productLink = strings.Replace(productLink, "', '#content'); ", "", -1)
+
+			if ctx.Err() != nil {
+				found = true
+				return
+			}
+
 			if price < bdPrice || bdPrice == -1 {
 				bd.Set(productName, price, store, productLink)
 			}
@@ -80,7 +72,7 @@ func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 			return
 		}
 	})
-	if found {
+	if found || ctx.Err() != nil {
 		return
 	}
 

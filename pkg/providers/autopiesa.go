@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type Autopiesa struct {
@@ -17,20 +16,7 @@ type Autopiesa struct {
 	SearchPath string
 }
 
-func (e *Autopiesa) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
-	defer wg.Done()
-	for {
-		select {
-		case <-(*ctx).Done():
-			return
-		default:
-			e.Search(bd, productCode, out)
-			return
-		}
-	}
-}
-
-func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
+func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -45,7 +31,7 @@ func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 	found := false
 
 	doc.Find("#carProducts").Each(func(i int, ls *goquery.Selection) {
-		if found {
+		if found || ctx.Err() != nil {
 			return
 		}
 		//find div text with classes col-xs-7 col-sm-7
@@ -61,6 +47,11 @@ func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 			store := reflect.TypeOf(*e).Name()
 			productLink, _ := ls.Find(".women").Find("a").Attr("href")
 			productName := ls.Find(".women").Find("a").Text()
+
+			if ctx.Err() != nil {
+				found = true
+				return
+			}
 
 			if price < bdPrice || bdPrice == -1 {
 				bd.Set(productName, price, store, productLink)
@@ -78,7 +69,7 @@ func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 		}
 	})
 
-	if found {
+	if found || ctx.Err() != nil {
 		return
 	}
 

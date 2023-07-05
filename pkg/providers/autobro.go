@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type Autobro struct {
@@ -17,20 +16,7 @@ type Autobro struct {
 	SearchPath string
 }
 
-func (e *Autobro) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
-	defer wg.Done()
-	for {
-		select {
-		case <-(*ctx).Done():
-			return
-		default:
-			e.Search(bd, productCode, out)
-			return
-		}
-	}
-}
-
-func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
+func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -45,7 +31,7 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 	found := false
 
 	doc.Find(".list-items").Each(func(i int, ls *goquery.Selection) {
-		if found {
+		if found || ctx.Err() != nil {
 			return
 		}
 		details := ls.Find(".table").Find("tbody").Find("tr")
@@ -65,6 +51,11 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 					productLink, _ := ls.Find(".title").Find("a").Attr("href")
 					productName := ls.Find(".title").Find("h5").Text()
 
+					if ctx.Err() != nil {
+						found = true
+						return
+					}
+
 					if price < bdPrice || bdPrice == -1 {
 
 						bd.Set(productName, price, store, productLink)
@@ -83,7 +74,7 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 		})
 	})
 
-	if found {
+	if found || ctx.Err() != nil {
 		return
 	}
 

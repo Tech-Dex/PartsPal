@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type Epiesa struct {
@@ -17,22 +16,7 @@ type Epiesa struct {
 	SearchPath string
 }
 
-func (e *Epiesa) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
-	defer wg.Done()
-
-	for {
-		select {
-		case <-(*ctx).Done():
-			return
-		default:
-			e.Search(bd, productCode, out)
-			return
-		}
-	}
-
-}
-
-func (e *Epiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
+func (e *Epiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -47,7 +31,7 @@ func (e *Epiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *s
 	found := false
 
 	doc.Find(".single-sub-product").Each(func(i int, ls *goquery.Selection) {
-		if found {
+		if found || ctx.Err() != nil {
 			return
 		}
 
@@ -66,6 +50,11 @@ func (e *Epiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *s
 			productLink, _ := ls.Find(".product-auto-title").Find("a").Attr("href")
 			productName := ls.Find(".product-auto-title").Find("a").Find("h4").Text()
 
+			if ctx.Err() != nil {
+				found = true
+				return
+			}
+
 			if price < bdPrice || bdPrice == -1 {
 				bd.Set(productName, price, store, e.URL+productLink)
 			}
@@ -81,7 +70,7 @@ func (e *Epiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *s
 		}
 	})
 
-	if found {
+	if found || ctx.Err() != nil {
 		return
 	}
 

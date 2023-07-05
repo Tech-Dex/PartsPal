@@ -9,7 +9,6 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 type Trol struct {
@@ -17,20 +16,7 @@ type Trol struct {
 	SearchPath string
 }
 
-func (e *Trol) SearchCtx(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, wg *sync.WaitGroup, ctx *context.Context) {
-	defer wg.Done()
-	for {
-		select {
-		case <-(*ctx).Done():
-			return
-		default:
-			e.Search(bd, productCode, out)
-			return
-		}
-	}
-}
-
-func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal) {
+func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
 	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
 	utils.CheckGenericProviderError(err, out)
 
@@ -45,7 +31,7 @@ func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- *str
 	found := false
 
 	doc.Find(".product-thumb").Each(func(i int, ls *goquery.Selection) {
-		if found {
+		if found || ctx.Err() != nil {
 			return
 		}
 
@@ -68,6 +54,11 @@ func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- *str
 			productLink, _ := ls.Find(".caption").Find("h4").Find("a").Attr("href")
 			productName := ls.Find(".caption").Find("h4").Find("a").Text()
 
+			if ctx.Err() != nil {
+				found = true
+				return
+			}
+
 			if price < bdPrice || bdPrice == -1 {
 				bd.Set(productName, price, store, e.URL+productLink)
 			}
@@ -82,7 +73,7 @@ func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- *str
 		}
 	})
 
-	if found {
+	if found || ctx.Err() != nil {
 		return
 	}
 
