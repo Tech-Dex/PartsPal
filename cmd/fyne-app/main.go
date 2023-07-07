@@ -6,7 +6,6 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/binding"
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
 	"github.com/Tech-Dex/PartsPal/pkg/providers"
 	"github.com/Tech-Dex/PartsPal/pkg/scraper"
@@ -97,55 +96,48 @@ func main() {
 			}
 		}()
 	})
-	searchC := container.New(
-		layout.NewAdaptiveGridLayout(2),
-		searchW,
-		searchBtn)
-
-	headerC := container.New(
-		layout.NewAdaptiveGridLayout(5),
-		layout.NewSpacer(),
-		titleW,
-		layout.NewSpacer(),
-		searchC,
-		layout.NewSpacer(),
-	)
-
-	productListW := widget.NewListWithData(providerDealListB,
-		func() fyne.CanvasObject {
-			return widget.NewLabel("template")
-		},
-		func(i binding.DataItem, o fyne.CanvasObject) {
-			o.(*widget.Label).Bind(i.(binding.String))
-		})
-
-	productListC := container.New(
-		layout.NewAdaptiveGridLayout(1),
-		productListW,
-	)
 
 	bestDealLbl := widget.NewLabel("Best Deal")
 	bestDealW := widget.NewLabelWithData(bestDealB)
 	bestDealW.Wrapping = fyne.TextWrapWord
 
-	bestDealC := container.New(
-		layout.NewAdaptiveGridLayout(1),
-		bestDealLbl,
-		bestDealW,
-		bestDealOpenLinkBtn,
+	content := container.NewBorder(
+		container.NewGridWithColumns(1,
+			container.NewGridWithRows(1,
+				container.NewCenter(titleW),
+				searchW,
+				searchBtn,
+			),
+		),
+		nil, nil, nil,
+		container.NewGridWithRows(1,
+			container.NewGridWithColumns(1,
+				container.NewMax(
+					widget.NewListWithData(providerDealListB,
+						func() fyne.CanvasObject {
+							return widget.NewLabel("template")
+						},
+						func(i binding.DataItem, o fyne.CanvasObject) {
+							o.(*widget.Label).Bind(i.(binding.String))
+						}),
+				),
+			),
+			container.NewGridWithColumns(1,
+				container.NewBorder(
+					bestDealLbl,
+					nil, nil, nil,
+					container.NewBorder(
+						bestDealW, nil, nil, nil,
+						container.NewBorder(
+							bestDealOpenLinkBtn, nil, nil, nil, nil,
+						),
+					),
+				),
+			),
+		),
 	)
 
-	mainC := container.New(
-		layout.NewAdaptiveGridLayout(2),
-		productListC,
-		bestDealC,
-	)
-
-	w.SetContent(container.New(
-		layout.NewAdaptiveGridLayout(1),
-		headerC,
-		mainC,
-	))
+	w.SetContent(content)
 
 	w.Resize(fyne.NewSize(800, 600))
 

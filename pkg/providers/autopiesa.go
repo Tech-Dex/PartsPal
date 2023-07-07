@@ -34,11 +34,21 @@ func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 		if found || ctx.Err() != nil {
 			return
 		}
-		//find div text with classes col-xs-7 col-sm-7
+
 		productCodeProvider := ls.Find(".col-xs-7.col-sm-7").Find("p").Eq(1).Text()[5:]
 		productCodeProvider = strings.ReplaceAll(productCodeProvider, " ", "")
 		if productCodeProvider == *productCode {
 			priceText := ls.Find(".item_price").Text()
+
+			if priceText == "" {
+				out <- &structs.Deal{
+					Store:       reflect.TypeOf(*e).Name(),
+					Requestable: true,
+				}
+				found = true
+				return
+			}
+
 			priceText = priceText[0 : len(priceText)-4] // remove " Lei"
 			price, _ := strconv.ParseFloat(priceText, 64)
 

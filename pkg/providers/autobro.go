@@ -50,6 +50,7 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 					store := reflect.TypeOf(*e).Name()
 					productLink, _ := ls.Find(".title").Find("a").Attr("href")
 					productName := ls.Find(".title").Find("h5").Text()
+					productName = strings.ReplaceAll(productName, "\n", "")
 
 					if ctx.Err() != nil {
 						found = true
@@ -57,7 +58,6 @@ func (e *Autobro) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 					}
 
 					if price < bdPrice || bdPrice == -1 {
-
 						bd.Set(productName, price, store, productLink)
 					}
 
