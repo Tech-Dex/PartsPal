@@ -112,15 +112,13 @@ func main() {
 		nil, nil, nil,
 		container.NewGridWithRows(1,
 			container.NewGridWithColumns(1,
-				container.NewMax(
-					widget.NewListWithData(providerDealListB,
-						func() fyne.CanvasObject {
-							return widget.NewLabel("template")
-						},
-						func(i binding.DataItem, o fyne.CanvasObject) {
-							o.(*widget.Label).Bind(i.(binding.String))
-						}),
-				),
+				widget.NewListWithData(providerDealListB,
+					func() fyne.CanvasObject {
+						return widget.NewLabel("template")
+					},
+					func(i binding.DataItem, o fyne.CanvasObject) {
+						o.(*widget.Label).Bind(i.(binding.String))
+					}),
 			),
 			container.NewGridWithColumns(1,
 				container.NewBorder(
