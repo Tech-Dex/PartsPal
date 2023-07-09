@@ -28,6 +28,6 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git checkout -b fyne-build-mac
-        git add build/
+        git add -f build/
         git commit -m "Add Fyne app build for Mac"
         git push --force origin fyne-build-mac
