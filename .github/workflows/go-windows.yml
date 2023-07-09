@@ -24,7 +24,7 @@ jobs:
     - name: Save build artifact
       run: |
         mkdir -p build
-        mv main build/
+        mv main.exe build/
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git checkout -b fyne-build-windows
