@@ -27,7 +27,7 @@ jobs:
         mv main build/
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git checkout -b fyne-build
+        git checkout -b fyne-build-ubuntu
         git add build/
         git commit -m "Add Fyne app build for Ubuntu"
-        git push origin fyne-build
+        git push origin fyne-build-ubuntu
