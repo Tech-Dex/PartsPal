@@ -27,10 +27,10 @@ jobs:
     - name: Save build artifact
       run: |
         mv main.exe build/
-        pwd && ls -la
+        pwd
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git checkout -b fyne-build-windows
-        git add build/
+        git add build/main.exe
         git commit -m "Add Fyne app build for Windows"
         git push --force origin fyne-build-windows
