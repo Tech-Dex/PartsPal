@@ -21,10 +21,16 @@ jobs:
     - name: Build Fyne App - Windows
       run: go build cmd/fyne-app/main.go
 
+    - name: Package Fyne App - Widnows
+      run: |
+        cd cmd/fyne-app
+        fyne package -os windows -icon ../../assets/Icon.png -name PartsPal
+
     - name: Save build artifact
       run: |
         mkdir build
         mv main.exe build/
+        mv cmd/fyne-app/PartsPal.app build/
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git checkout -b fyne-build-windows
