@@ -21,10 +21,13 @@ jobs:
     - name: Build Fyne App - Windows
       run: go build cmd/fyne-app/main.go
 
+    - name: Create build directory
+      run: mkdir build
+
     - name: Save build artifact
       run: |
-        mkdir -p build
         mv main.exe build/
+        pwd && ls -la
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git checkout -b fyne-build-windows
