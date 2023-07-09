@@ -3,7 +3,7 @@ name: Build Fyne App - Windows
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
