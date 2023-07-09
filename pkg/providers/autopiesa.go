@@ -57,6 +57,7 @@ func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 			store := reflect.TypeOf(*e).Name()
 			productLink, _ := ls.Find(".women").Find("a").Attr("href")
 			productName := ls.Find(".women").Find("a").Text()
+			productName = strings.ReplaceAll(productName, "\n", "")
 
 			if ctx.Err() != nil {
 				found = true

@@ -56,3 +56,14 @@ func (d *Deal) Set(product string, price float64, store string, link string, err
 func (d *Deal) Get() (string, float64, string, string, string, bool, bool, bool) {
 	return d.Product, d.Price, d.Store, d.Link, d.Error, d.NotFound, d.Unavailable, d.Requestable
 }
+
+type DealJson struct {
+	Type        string  `json:"type"`
+	Product     string  `json:"product"`
+	Price       float64 `json:"price"`
+	Store       string  `json:"store"`
+	Link        string  `json:"link"`
+	NotFound    bool    `json:"notFound"`
+	Unavailable bool    `json:"unavailable"`
+	Requestable bool    `json:"requestable"`
+}
