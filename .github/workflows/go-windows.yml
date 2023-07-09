@@ -30,4 +30,4 @@ jobs:
         git checkout -b fyne-build-windows
         git add build/
         git commit -m "Add Fyne app build for Windows"
-        git push origin fyne-build-windows
+        git push --force origin fyne-build-windows

@@ -30,4 +30,4 @@ jobs:
         git checkout -b fyne-build-mac
         git add build/
         git commit -m "Add Fyne app build for Mac"
-        git push origin fyne-build-mac
+        git push --force origin fyne-build-mac
