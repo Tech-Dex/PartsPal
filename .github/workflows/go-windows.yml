@@ -35,6 +35,6 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git checkout -b fyne-build-windows
-          git add -f build/main.exe
+          git add -f build/
           git commit -m "Add Fyne app build for Windows"
           git push --force origin fyne-build-windows
