@@ -1,0 +1,33 @@
+name: Build Fyne App - Windows
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.x
+
+    - name: Build Fyne App - Windows
+      run: go build cmd/fyne-app/main.go
+
+    - name: Save build artifact
+      run: |
+        mkdir -p build
+        mv main build/
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git checkout -b fyne-build-windows
+        git add build/
+        git commit -m "Add Fyne app build for Windows"
+        git push origin fyne-build-windows
