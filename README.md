@@ -1,5 +1,7 @@
 # PartsPal
-Whether you're a car enthusiast, a mechanic, or a regular vehicle owner, PartsPal is designed to help you quickly find the exact parts you need for your vehicle maintenance or repair projects.
+
+Whether you're a car enthusiast, a mechanic, or a regular vehicle owner, PartsPal is designed to help you quickly find
+the exact parts you need for your vehicle maintenance or repair projects.
 
 ## Features
 
@@ -19,51 +21,67 @@ Whether you're a car enthusiast, a mechanic, or a regular vehicle owner, PartsPa
 ### Installation
 
 1. Clone the repository:
+
 ```shell
 git clone <repository-url>
 ```
+
 2. Install dependencies:
+
 ```shell
 go mod download
 ```
+
 3.1. Build the Fyne application:
+
 ```shell
 go build cmd/parts-pal/main.go
 ```
+
 3.2. Build the Websocket server:
+
 ```shell
 go build cmd/api/main.go
 ```
+
 4. Run the built executables:
+
 ```shell
 ./main
 ```
+
 5. Packaging the Fyne application (optional):
+
 ```shell
 fyne package -os <operating-system> -icon <icon-file> # https://developer.fyne.io/started/packaging
 ```
-
 
 ### Usage
 
 #### Fyne Application
 
 1. Run the Fyne application:
+
 ```shell
 ./main
 ```
+
 2. Enter the product code information and click the "Search" button
 
 #### Websocket API
 
 1. Run the Websocket server:
+
 ```shell
 ./main
 ```
+
 2. Connect to the server using a websocket client on localhost:3000/ws/scrape
 3. Send a simple byte message containing the product code information: "27025"
-4. The server will respond with a JSON message containing the product information. There are 2 types of messages: "bestDeal" and "deal"
-5. The "bestDeal" message contains the best deal for the product, while the "deal" message contains a deal from one of the providers
+4. The server will respond with a JSON message containing the product information. There are 2 types of messages: "
+   bestDeal" and "deal"
+5. The "bestDeal" message contains the best deal for the product, while the "deal" message contains a deal from one of
+   the providers
 
 #### Example WebSocket Client Code (using Gorilla Websocket):
 
@@ -101,6 +119,5 @@ func main() {
 	}
 }
 ```
-Replace "PRODUCT_CODE" in the code above with the actual product code you want to search for.
 
-Test github actions
+Replace "PRODUCT_CODE" in the code above with the actual product code you want to search for.
