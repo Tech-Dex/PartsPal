@@ -53,20 +53,22 @@ func (e *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- *str
 			store := reflect.TypeOf(*e).Name()
 			productLink, _ := ls.Find(".caption").Find("h4").Find("a").Attr("href")
 			productName := ls.Find(".caption").Find("h4").Find("a").Text()
-
+			if !strings.Contains(productLink, "trol.ro") {
+				productLink = e.URL + productLink
+			}
 			if ctx.Err() != nil {
 				found = true
 				return
 			}
 
 			if price < bdPrice || bdPrice == -1 {
-				bd.Set(productName, price, store, e.URL+productLink)
+				bd.Set(productName, price, store, productLink)
 			}
 			out <- &structs.Deal{
 				Product: productName,
 				Price:   price,
 				Store:   store,
-				Link:    e.URL + productLink,
+				Link:    productLink,
 			}
 			found = true
 			return
