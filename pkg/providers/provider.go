@@ -19,7 +19,7 @@ var URLs = []string{
 	"https://www.rapidauto.ro",
 	"https://www.automobilus.ro",
 	"https://www.trol.ro",
-	"https://www.comnico.ro",
+	"https://comnico.ro",
 }
 
 var SizeURLs = len(URLs)
@@ -86,7 +86,7 @@ func GetProvider(URL string) (interfaces.Provider, error) {
 			URL:        URL,
 			SearchPath: "/index.php?route=product/search&search=",
 		}, nil
-	case "https://www.comnico.ro":
+	case "https://comnico.ro":
 		return &Comnico{
 			URL:        URL,
 			SearchPath: "/cauta/",

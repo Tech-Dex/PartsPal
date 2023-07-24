@@ -13,6 +13,7 @@ import (
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
 	"net/url"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -27,6 +28,7 @@ func main() {
 	providerDealListB := binding.BindStringList(
 		&[]string{},
 	)
+	providersDealListUrls := map[string]string{}
 	bestDealB := binding.NewString()
 	bestDealB.Set("No best deal found")
 	var urlHl *url.URL
@@ -60,7 +62,8 @@ func main() {
 			pipe := make(chan *structs.Deal, providers.SizeURLs)
 			defer close(pipe)
 
-			scraper.FindBestDeal(bd, &searchW.Text, &pipe, &wg, ctx)
+			trimSearch := strings.TrimSpace(searchW.Text)
+			scraper.FindBestDeal(bd, &trimSearch, &pipe, &wg, ctx)
 
 			for {
 				select {
@@ -72,7 +75,7 @@ func main() {
 						bestDealB.Set(bdProduct + " - " + strconv.FormatFloat(bdPrice, 'f', 2, 64) + " RON @ " + bdStore)
 						bestDealOpenLinkBtn.SetURLFromString(bdLink)
 					}
-					_, dPrice, dStore, _, err, notFound, unavailable, requstable := deal.Get()
+					_, dPrice, dStore, dLink, err, notFound, unavailable, requstable := deal.Get()
 
 					providerDeal := strconv.FormatFloat(dPrice, 'f', 2, 64) + " RON @ " + dStore
 					if notFound {
@@ -88,6 +91,7 @@ func main() {
 						providerDeal = utils.GenericProviderErrorMsg + " @ " + dStore
 					}
 					providerDealListB.Append(providerDeal)
+					providersDealListUrls[providerDeal] = dLink
 				case <-time.After(Timeout):
 					wg.Wait()
 					cancel()
@@ -101,6 +105,24 @@ func main() {
 	bestDealW := widget.NewLabelWithData(bestDealB)
 	bestDealW.Wrapping = fyne.TextWrapWord
 
+	providerDealListW := widget.NewListWithData(providerDealListB,
+		func() fyne.CanvasObject {
+			return widget.NewLabel("template")
+		},
+		func(i binding.DataItem, o fyne.CanvasObject) {
+			o.(*widget.Label).Bind(i.(binding.String))
+		})
+
+	providerDealListW.OnSelected = func(id int) {
+		deals, _ := providerDealListB.Get()
+		dLink := providersDealListUrls[deals[id]]
+
+		var storeProductUrl *url.URL
+		storeProductUrl, _ = url.Parse(dLink)
+
+		fyne.CurrentApp().OpenURL(storeProductUrl)
+	}
+
 	content := container.NewBorder(
 		container.NewGridWithColumns(1,
 			container.NewGridWithRows(1,
@@ -112,13 +134,7 @@ func main() {
 		nil, nil, nil,
 		container.NewGridWithRows(1,
 			container.NewGridWithColumns(1,
-				widget.NewListWithData(providerDealListB,
-					func() fyne.CanvasObject {
-						return widget.NewLabel("template")
-					},
-					func(i binding.DataItem, o fyne.CanvasObject) {
-						o.(*widget.Label).Bind(i.(binding.String))
-					}),
+				providerDealListW,
 			),
 			container.NewGridWithColumns(1,
 				container.NewBorder(
