@@ -67,3 +67,9 @@ type DealJson struct {
 	Unavailable bool    `json:"unavailable"`
 	Requestable bool    `json:"requestable"`
 }
+
+type ProviderStruct struct {
+	URL        string
+	SearchPath string
+	Store      string
+}

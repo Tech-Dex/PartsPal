@@ -1,6 +1,8 @@
 package utils
 
-import "github.com/Tech-Dex/PartsPal/pkg/structs"
+import (
+	"github.com/Tech-Dex/PartsPal/pkg/structs"
+)
 
 const GenericProviderErrorMsg = "Error occurred while searching"
 const ProductNotFoundMsg = "Product not found"
@@ -11,8 +13,8 @@ type ProviderNotFoundError struct {
 	Provider string
 }
 
-func (e *ProviderNotFoundError) Error() string {
-	return e.Provider + " not found"
+func (p *ProviderNotFoundError) Error() string {
+	return p.Provider + " not found"
 }
 
 func IsProviderNotFound(err error) bool {
@@ -26,8 +28,12 @@ func IsProviderNotFound(err error) bool {
 	return false
 }
 
-func CheckGenericProviderError(err error, out chan<- *structs.Deal) {
+func CheckGenericProviderError(err error, p *structs.ProviderStruct, out chan<- *structs.Deal) {
 	if err != nil {
-		out <- &structs.Deal{Error: GenericProviderErrorMsg}
+		out <- &structs.Deal{
+			Error: GenericProviderErrorMsg,
+			Link:  p.URL,
+			Store: p.Store,
+		}
 	}
 }

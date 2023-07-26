@@ -5,27 +5,25 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
-	"io"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
-type Comnico struct {
-	URL        string
-	SearchPath string
-}
+type Comnico structs.ProviderStruct
 
-func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
-	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
-	utils.CheckGenericProviderError(err, out)
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		utils.CheckGenericProviderError(err, out)
-	}(res.Body)
+func (p *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
+	store := reflect.TypeOf(*p).Name()
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	utils.CheckGenericProviderError(err, out)
+	doc := utils.GenericGoQueryDoc(&structs.ProviderStruct{
+		URL:        p.URL,
+		SearchPath: p.SearchPath,
+		Store:      store,
+	}, productCode, out)
+
+	if doc == nil {
+		return
+	}
 
 	found := false
 
@@ -44,8 +42,6 @@ func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 			price, _ := strconv.ParseFloat(priceText, 64)
 
 			bdPrice := bd.GetPrice()
-
-			store := reflect.TypeOf(*e).Name()
 
 			productName := ls.Find(".denumire").Text()
 			productLink, _ := ls.Find(".denumire").Attr("onclick")
@@ -77,7 +73,7 @@ func (e *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 	}
 
 	out <- &structs.Deal{
-		Store:    reflect.TypeOf(*e).Name(),
+		Store:    reflect.TypeOf(*p).Name(),
 		NotFound: true,
 	}
 

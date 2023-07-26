@@ -5,28 +5,25 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
-	"io"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
-type Automobilus struct {
-	URL        string
-	SearchPath string
-}
+type Automobilus structs.ProviderStruct
 
-func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
-	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
-	utils.CheckGenericProviderError(err, out)
+func (p *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
+	store := reflect.TypeOf(*p).Name()
 
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		utils.CheckGenericProviderError(err, out)
-	}(res.Body)
+	doc := utils.GenericGoQueryDoc(&structs.ProviderStruct{
+		URL:        p.URL,
+		SearchPath: p.SearchPath,
+		Store:      store,
+	}, productCode, out)
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	utils.CheckGenericProviderError(err, out)
+	if doc == nil {
+		return
+	}
 
 	found := false
 
@@ -46,8 +43,6 @@ func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan
 		priceText = strings.ReplaceAll(priceText, ",", ".")
 		price, _ := strconv.ParseFloat(priceText, 64)
 		bdPrice := bd.GetPrice()
-
-		store := reflect.TypeOf(*e).Name()
 
 		if ctx.Err() != nil {
 			found = true
@@ -74,7 +69,7 @@ func (e *Automobilus) Search(bd *structs.BestDeal, productCode *string, out chan
 	}
 
 	out <- &structs.Deal{
-		Store:    reflect.TypeOf(*e).Name(),
+		Store:    reflect.TypeOf(*p).Name(),
 		NotFound: true,
 	}
 

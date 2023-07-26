@@ -5,28 +5,25 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/Tech-Dex/PartsPal/pkg/structs"
 	"github.com/Tech-Dex/PartsPal/pkg/utils"
-	"io"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
-type Autopiesa struct {
-	URL        string
-	SearchPath string
-}
+type Autopiesa structs.ProviderStruct
 
-func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
-	res, err := utils.HttpGet(e.URL + e.SearchPath + *productCode)
-	utils.CheckGenericProviderError(err, out)
+func (p *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<- *structs.Deal, ctx context.Context) {
+	store := reflect.TypeOf(*p).Name()
 
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		utils.CheckGenericProviderError(err, out)
-	}(res.Body)
+	doc := utils.GenericGoQueryDoc(&structs.ProviderStruct{
+		URL:        p.URL,
+		SearchPath: p.SearchPath,
+		Store:      store,
+	}, productCode, out)
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	utils.CheckGenericProviderError(err, out)
+	if doc == nil {
+		return
+	}
 
 	found := false
 
@@ -42,7 +39,7 @@ func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 
 			if priceText == "" {
 				out <- &structs.Deal{
-					Store:       reflect.TypeOf(*e).Name(),
+					Store:       reflect.TypeOf(*p).Name(),
 					Requestable: true,
 				}
 				found = true
@@ -54,7 +51,6 @@ func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 
 			bdPrice := bd.GetPrice()
 
-			store := reflect.TypeOf(*e).Name()
 			productLink, _ := ls.Find(".women").Find("a").Attr("href")
 			productName := ls.Find(".women").Find("a").Text()
 			productName = strings.ReplaceAll(productName, "\n", "")
@@ -85,7 +81,7 @@ func (e *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 	}
 
 	out <- &structs.Deal{
-		Store:    reflect.TypeOf(*e).Name(),
+		Store:    reflect.TypeOf(*p).Name(),
 		NotFound: true,
 	}
 
