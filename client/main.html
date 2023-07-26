@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PartsPal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-container img {
+            width: 100px;
+            height: auto;
+            margin-right: 10%;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row">
+        <div class="col">
+            <div class="row">
+                <div class="col">
+                    <div class="logo-container">
+                        <img src="../assets/Icon.png" alt="PartsPal Logo">
+                        <h1 class="">PartsPal</h1>
+                    </div>
+                </div>
+                <div class="input-group mb-3 col">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Enter product code">
+                    <button id="searchButton" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Left Half: List -->
+        <div class="col">
+            <h2>Deals</h2>
+            <ul id="list" class="list-group">
+
+            </ul>
+        </div>
+
+        <!-- Right Half: Best Deal -->
+        <div class="col">
+            <h2>Best Deal</h2>
+            <p id="bestDealText">No best deal yet.</p>
+            <div class="d-flex justify-content-center">
+                <a id="bestDealButton" class="btn btn-success" target="_blank" href="#">Go to shop</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    var ws = null;
+
+    $(document).ready(function () {
+        $("#searchButton").click(function () {
+            $("#list").empty();
+            const productCode = $("#searchInput").val();
+            if (ws !== null && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+            ws = new WebSocket("ws://localhost:3000/ws/scrape");
+            ws.onopen = function () {
+                ws.send(productCode);
+            };
+            ws.onmessage = function (event) {
+                if (event.data === "done") {
+                    ws.close();
+                    return;
+                }
+
+                const response = JSON.parse(event.data);
+                if (response.type === "deal") {
+                    let priceText = response.price;
+                    if (response.notFound) {
+                        priceText = "Product not found"
+                    }
+                    if (response.unavailable) {
+                        priceText = "Product unavailable"
+                    }
+                    if (response.requestable) {
+                        priceText = "Product can be requested"
+                    }
+                    $("#list").append("<li class='list-group-item'> <a target='_blank' href='" + response.link + "'>" + priceText + " RON @ " + response.store + "</a></li>");
+                } else if (response.type === "bestDeal") {
+                    $("#bestDealText").text( response.product + " - " + response.price + " RON @ " + response.store);
+                    $("#bestDealButton").attr("href", response.link);
+                }
+            };
+            ws.onerror = function (event) {
+                console.error("WebSocket error:", event);
+            };
+        });
+    });
+</script>
+</body>
+
+</html>
