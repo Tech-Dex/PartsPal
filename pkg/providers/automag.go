@@ -48,7 +48,8 @@ func (p *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 		} else {
 			out <- &structs.Deal{
 				Product:     productName,
-				Store:       reflect.TypeOf(*p).Name(),
+				Store:       store,
+				Link:        p.URL,
 				Requestable: true,
 			}
 			found = true
@@ -82,6 +83,7 @@ func (p *Automag) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 
 	out <- &structs.Deal{
 		Store:    reflect.TypeOf(*p).Name(),
+		Link:     p.URL,
 		NotFound: true,
 	}
 

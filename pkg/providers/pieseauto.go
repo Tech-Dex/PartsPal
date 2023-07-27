@@ -72,6 +72,7 @@ func (p *Pieseauto) Search(bd *structs.BestDeal, productCode *string, out chan<-
 
 	out <- &structs.Deal{
 		Store:    reflect.TypeOf(*p).Name(),
+		Link:     p.URL,
 		NotFound: true,
 	}
 

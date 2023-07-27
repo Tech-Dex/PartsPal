@@ -77,6 +77,7 @@ func (p *Trol) Search(bd *structs.BestDeal, productCode *string, out chan<- *str
 
 	out <- &structs.Deal{
 		Store:    reflect.TypeOf(*p).Name(),
+		Link:     p.URL,
 		NotFound: true,
 	}
 

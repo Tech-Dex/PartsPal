@@ -18,7 +18,7 @@ var up = websocket.Upgrader{
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
 		origin := r.Header.Get("Origin")
-		return origin == "http://localhost:80" || origin == "https://localhost:443"
+		return origin == "http://localhost:80" || origin == "https://localhost:443" || origin == "http://localhost"
 	},
 }
 
@@ -103,7 +103,6 @@ func scrapeSKU(w http.ResponseWriter, r *http.Request) {
 			}
 		}()
 
-		log.Printf("Message received: %s\n", msg)
 		if err != nil {
 			log.Printf("Error writing websocket message: %v", err)
 			return

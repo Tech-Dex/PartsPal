@@ -39,7 +39,8 @@ func (p *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 
 			if priceText == "" {
 				out <- &structs.Deal{
-					Store:       reflect.TypeOf(*p).Name(),
+					Store:       store,
+					Link:        p.URL,
 					Requestable: true,
 				}
 				found = true
@@ -82,6 +83,7 @@ func (p *Autopiesa) Search(bd *structs.BestDeal, productCode *string, out chan<-
 
 	out <- &structs.Deal{
 		Store:    reflect.TypeOf(*p).Name(),
+		Link:     p.URL,
 		NotFound: true,
 	}
 
