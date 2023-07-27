@@ -29,7 +29,11 @@ jobs:
 
       - name: Save build artifact
         run: |
-          mkdir -p build
+          if not exist build (
+            mkdir build
+          ) else (
+            echo 'build' directory already exists
+          )
           mv main.exe build/
           mv cmd/fyne-app/PartsPal.exe build/
           git config --local user.email "action@github.com"
