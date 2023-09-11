@@ -29,7 +29,11 @@ jobs:
 
       - name: Save build artifact
         run: |
-          mkdir build
+          if (Test-Path -Path "build" -PathType Container) {
+            Write-Host "'build' directory already exists"
+          } else {
+            New-Item -ItemType Directory -Path "build"
+          }
           mv main.exe build/
           mv cmd/fyne-app/PartsPal.exe build/
           git config --local user.email "action@github.com"
