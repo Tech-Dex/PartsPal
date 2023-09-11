@@ -36,6 +36,19 @@ func (p *Comnico) Search(bd *structs.BestDeal, productCode *string, out chan<- *
 		productCodeProvider = strings.ReplaceAll(productCodeProvider, " ", "")
 		if productCodeProvider == *productCode {
 			priceText := ls.Find(".pretunic").Text()
+			if priceText == "" {
+				unavailable := ls.Find(".pretindisponibil").Text()
+				if unavailable != "" {
+					out <- &structs.Deal{
+						Store:       store,
+						Link:        p.URL,
+						Unavailable: true,
+					}
+
+					found = true
+					return
+				}
+			}
 			priceText = priceText[0 : len(priceText)-5] // remove " Lei"
 			priceText = priceText[:len(priceText)-2] + "." + priceText[len(priceText)-2:]
 			priceText = strings.ReplaceAll(priceText, ",", ".")
